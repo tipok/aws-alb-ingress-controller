@@ -83,7 +83,7 @@ func Test_resolveSecurityGroupIDs(t *testing.T) {
 				cloud: cloud,
 			}
 
-			out, err := controller.resolveSecurityGroupIDs(ctx, tc.Input)
+			out, err := controller.ResolveSecurityGroupIDs(ctx, tc.Input)
 			sort.Strings(tc.Output)
 			sort.Strings(out)
 			assert.Equal(t, tc.Output, out)

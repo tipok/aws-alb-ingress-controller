@@ -26,6 +26,9 @@ type AssociationController interface {
 
 	// Delete ensures the securityGroups created by ingress controller for specified LbID doesn't exists.
 	Delete(ctx context.Context, ingressKey types.NamespacedName, lbInstance *elbv2.LoadBalancer) error
+
+	// ResolveSecurityGroupIDs keeps securityGroup IDs if provided, but if names are provided resolves them to IDs
+	ResolveSecurityGroupIDs(ctx context.Context, sgIDOrNames []string) ([]string, error)
 }
 
 // NewAssociationController constructs a new association controller
@@ -250,7 +253,7 @@ func (c *associationController) buildAssociationConfig(ctx context.Context, ingr
 	for _, port := range ingressAnnos.LoadBalancer.Ports {
 		lbPorts = append(lbPorts, port.Port)
 	}
-	lbExternalSGs, err := c.resolveSecurityGroupIDs(ctx, ingressAnnos.LoadBalancer.SecurityGroups)
+	lbExternalSGs, err := c.ResolveSecurityGroupIDs(ctx, ingressAnnos.LoadBalancer.SecurityGroups)
 	if err != nil {
 		return associationConfig{}, err
 	}
@@ -262,7 +265,8 @@ func (c *associationController) buildAssociationConfig(ctx context.Context, ingr
 	}, nil
 }
 
-func (c *associationController) resolveSecurityGroupIDs(ctx context.Context, sgIDOrNames []string) ([]string, error) {
+// ResolveSecurityGroupIDs keeps securityGroup IDs if provided, but if names are provided resolves them to IDs
+func (c *associationController) ResolveSecurityGroupIDs(ctx context.Context, sgIDOrNames []string) ([]string, error) {
 	var names []string
 	var output []string
 

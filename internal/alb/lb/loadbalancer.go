@@ -307,6 +307,14 @@ func (controller *defaultController) buildLBConfig(ctx context.Context, ingress 
 	if err != nil {
 		return nil, err
 	}
+
+	groups, err := controller.sgAssociationController.ResolveSecurityGroupIDs(ctx, ingressAnnos.LoadBalancer.SecurityGroups)
+	if err != nil {
+		albctx.GetLogger(ctx).Infof("Error during resolving of group ids %v due to %v",
+			ingressAnnos.LoadBalancer.SecurityGroups, err)
+		groups = ingressAnnos.LoadBalancer.SecurityGroups
+	}
+
 	return &loadBalancerConfig{
 		Name: controller.nameTagGen.NameLB(ingress.Namespace, ingress.Name),
 		Tags: lbTags,
@@ -314,7 +322,7 @@ func (controller *defaultController) buildLBConfig(ctx context.Context, ingress 
 		Type:           aws.String(elbv2.LoadBalancerTypeEnumApplication),
 		Scheme:         ingressAnnos.LoadBalancer.Scheme,
 		IpAddressType:  ingressAnnos.LoadBalancer.IPAddressType,
-		SecurityGroups: ingressAnnos.LoadBalancer.SecurityGroups,
+		SecurityGroups: groups,
 		Subnets:        subnets,
 	}, nil
 }
